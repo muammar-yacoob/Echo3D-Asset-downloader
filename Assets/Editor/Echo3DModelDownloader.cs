@@ -1,16 +1,25 @@
+using System;
 using UnityEngine;
 using UnityEditor;
 using System.IO;
 using Cysharp.Threading.Tasks;
+using DefaultNamespace;
 using UnityEngine.Networking;
 
 public class Echo3DModelDownloader : EditorWindow
 {
-    private string modelId = "644da764-822d-luaaa-b2db-4f2da35d48db";
-    private string apiKey = "dark-art-8233";
-    private string secKey = "72ap8O5TuHAAKkOQEoJnsTFB";
-    private string fileFormat = "obj";
+    //https://console.echo3d.com/#/pages/contentmanager
+    private string apiKey = "dry-rice-2801";
+    private string secKey = "wNYXnx9VhJHVXDUWeNZ0gjZN";
+    private string modelId = "05f679e5-11aa-4599-ab43-3a3d3f0b618a";
+    private string fileFormat;
     private Texture2D windowIcon;
+    private string defaultSavePath = "Assets/Echo3DModels/";
+
+    private void OnFocus()
+    {
+        fileFormat = "gltf";
+    }
 
     [MenuItem("Asset Management/Echo3D Model Downloader")]
     public static void ShowWindow()
@@ -29,9 +38,9 @@ public class Echo3DModelDownloader : EditorWindow
     {
         GUILayout.Label("Echo3D Model Downloader", EditorStyles.boldLabel);
 
-        apiKey = EditorGUILayout.TextField("API Key", apiKey);
+        //apiKey = EditorGUILayout.TextField("API Key", apiKey);
         modelId = EditorGUILayout.TextField("Model ID", modelId);
-        fileFormat = EditorGUILayout.TextField("File Format", fileFormat);
+        //fileFormat = EditorGUILayout.TextField("File Format", fileFormat);
 
         if (string.IsNullOrEmpty(modelId) || modelId.Length < 13 || string.IsNullOrEmpty(apiKey))
         {
@@ -48,30 +57,30 @@ public class Echo3DModelDownloader : EditorWindow
 
     async UniTaskVoid FetchAndDownloadModel()
     {
-        await DownloadModel();
-    }
-
-    /// <summary>
-    /// Example usage on: https://docs.echo3d.com/download
-    /// </summary>
-    async UniTask DownloadModel()
-    {
+        /// Example usage on: https://docs.echo3d.com/download
         string downloadUrl =
             $"https://api.echo3D.com/download/model?key={apiKey}&entry={modelId}&fileFormat={fileFormat}&convertMissing=true&secKey={secKey}";
-        using (var request = UnityWebRequest.Get(downloadUrl))
+        await DownloadModel(downloadUrl);
+    }
+
+    async UniTask DownloadModel(string url)
+    {
+        using (var request = UnityWebRequest.Get(url))
         {
             await request.SendWebRequest();
 
             if (request.result == UnityWebRequest.Result.Success)
             {
+                //you can only parse gltf file contents, DOH!
+                var currentModelInfo = JsonUtility.FromJson<ModelInfo>(request.downloadHandler.text);
                 byte[] modelBytes = request.downloadHandler.data;
 
-                string savePath = EditorUtility.SaveFilePanel("Save Model", "", modelId, fileFormat);
-                if (!string.IsNullOrEmpty(savePath))
-                {
-                    File.WriteAllBytes(savePath, modelBytes);
-                    Debug.Log("Model downloaded and saved to: " + savePath);
-                }
+                string fileName = currentModelInfo.asset.extras.title + $".{fileFormat}"; 
+                Directory.CreateDirectory(defaultSavePath);
+                string savePath = Path.Combine(defaultSavePath, fileName);
+
+                File.WriteAllBytes(savePath, modelBytes);
+                Debug.Log($"Model is downloaded to: " + defaultSavePath);
             }
             else
             {
@@ -80,3 +89,4 @@ public class Echo3DModelDownloader : EditorWindow
         }
     }
 }
+

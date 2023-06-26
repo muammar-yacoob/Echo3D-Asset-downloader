@@ -1,6 +1,8 @@
 {
   "dependencies": {
+    "co.echo3d.echounitysdk": "file:C:/Users/muamm/Downloads/echo3DUnitySDK/co.echo3d.unity",
     "com.cysharp.unitask": "https://github.com/Cysharp/UniTask.git?path=src/UniTask/Assets/Plugins/UniTask",
+    "com.sparkgames.sketchfabbrowser": "https://github.com/muammar-yacoob/unity-sketchfab-browser.git?path=Assets/Package",
     "com.unity.feature.development": "1.0.1",
     "com.unity.ide.rider": "3.0.24",
     "com.unity.test-framework": "1.1.33",
