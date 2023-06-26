@@ -5,6 +5,7 @@ using System.IO;
 using Cysharp.Threading.Tasks;
 using DefaultNamespace;
 using UnityEngine.Networking;
+using Object = UnityEngine.Object;
 
 public class Echo3DModelDownloader : EditorWindow
 {
@@ -15,6 +16,7 @@ public class Echo3DModelDownloader : EditorWindow
     private string fileFormat;
     private Texture2D windowIcon;
     private string defaultSavePath = "Assets/Echo3DModels/";
+    private bool isDownloading;
 
     private void OnFocus()
     {
@@ -47,16 +49,17 @@ public class Echo3DModelDownloader : EditorWindow
             GUI.enabled = false;
         }
 
+        GUI.enabled = !isDownloading;
         if (GUILayout.Button("Fetch Model"))
         {
             FetchAndDownloadModel().Forget();
         }
-
         GUI.enabled = true;
     }
 
     async UniTaskVoid FetchAndDownloadModel()
     {
+        isDownloading = true;
         /// Example usage on: https://docs.echo3d.com/download
         string downloadUrl =
             $"https://api.echo3D.com/download/model?key={apiKey}&entry={modelId}&fileFormat={fileFormat}&convertMissing=true&secKey={secKey}";
@@ -74,18 +77,30 @@ public class Echo3DModelDownloader : EditorWindow
                 //you can only parse gltf file contents, DOH!
                 var currentModelInfo = JsonUtility.FromJson<ModelInfo>(request.downloadHandler.text);
                 byte[] modelBytes = request.downloadHandler.data;
-
                 string fileName = currentModelInfo.asset.extras.title + $".{fileFormat}"; 
+                fileName = (String.IsNullOrEmpty(fileName)) ? currentModelInfo.buffers[0].name : fileName;
+                
                 Directory.CreateDirectory(defaultSavePath);
                 string savePath = Path.Combine(defaultSavePath, fileName);
 
                 File.WriteAllBytes(savePath, modelBytes);
-                Debug.Log($"Model is downloaded to: " + defaultSavePath);
+                Debug.Log($"{fileName} is downloaded to: " + defaultSavePath);
+                
+                var targetObject = AssetDatabase.LoadAssetAtPath<Object>(savePath);
+                if (targetObject != null)
+                {
+                    Selection.activeObject = targetObject;
+                    EditorGUIUtility.PingObject(targetObject);
+                }
+                
             }
             else
             {
                 Debug.LogError("Failed to download the model: " + request.error);
             }
+            
+            isDownloading = false;
+            Repaint();
         }
     }
 }

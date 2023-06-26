@@ -63,6 +63,7 @@ namespace DefaultNamespace
     public class GLTFBuffer
     {
         public int byteLength;
+        public string name;
     }
 
     [Serializable]
