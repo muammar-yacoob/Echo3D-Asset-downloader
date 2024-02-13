@@ -10,8 +10,8 @@ using Object = UnityEngine.Object;
 public class Echo3DModelDownloader : EditorWindow
 {
     //https://console.echo3d.com/#/pages/contentmanager
-    private string apiKey = "dry-rice-2801";
-    private string secKey = "wNYXnx9VhJHVXDUWeNZ0gjZN";
+    private string apiKey = "your-api";
+    private string secKey = "your-key";
     private string modelId = "05f679e5-11aa-4599-ab43-3a3d3f0b618a";
     private string fileFormat;
     private Texture2D windowIcon;
